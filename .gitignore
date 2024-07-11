@@ -1,0 +1,6 @@
+*.elf
+*.o
+*~
+snd_nav.h
+font.h
+OffAct.elf
