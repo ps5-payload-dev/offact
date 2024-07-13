@@ -18,6 +18,7 @@ along with this program; see the file COPYING. If not, see
 #include <SDL2/SDL_ttf.h>
 #include <SDL2/SDL_mixer.h>
 
+#include "IME_dialog.h"
 #include "SDL_listui.h"
 #include "offact.h"
 
@@ -30,34 +31,36 @@ along with this program; see the file COPYING. If not, see
 #define SCREEN_HEIGHT 1280
 
 
-static Uint64 selected_item_id = 0;
 static Mix_Chunk* snd_nav;
 static SDL_ListUI *ui;
 
 
+static void OnListRefresh(void);
+
+
 /**
- * Obtain a textual label for an account with the given index.
+ * Obtain a textual label for an account with the given number.
  **/
-static int GetLabel(int account_index, char* label, size_t size)
+static int GetItemLabel(int account_numb, char* label, size_t size)
 {
     char account_name[ACCOUNT_NAME_MAX];
     char account_type[ACCOUNT_TYPE_MAX];
     Uint64 account_id;
     int account_flags;
 
-    if(OffAct_GetAccountName(account_index, account_name)) {
+    if(OffAct_GetAccountName(account_numb, account_name)) {
 	return -1;
     }
     if(!*account_name) {
 	return -1;
     }
-    if(OffAct_GetAccountId(account_index, &account_id)) {
+    if(OffAct_GetAccountId(account_numb, &account_id)) {
 	return -1;
     }
-    if(OffAct_GetAccountType(account_index, account_type)) {
+    if(OffAct_GetAccountType(account_numb, account_type)) {
 	return -1;
     }
-    if(OffAct_GetAccountFlags(account_index, &account_flags)) {
+    if(OffAct_GetAccountFlags(account_numb, &account_flags)) {
 	return -1;
     }
 
@@ -65,48 +68,96 @@ static int GetLabel(int account_index, char* label, size_t size)
 		 "flags: 0x%04x  id: 0x%016lx  name: %s",
 		 account_type, account_flags, account_id, account_name);
 
-    return account_id;
+    return 0;
 }
 
 
-/**
- * Play nav.wav when a new item is selected
- **/
-static void OnSelect(void *ctx)
-{
-    selected_item_id = (Uint64)ctx;
-    Mix_PlayChannel(-1, snd_nav, 0);
-}
-
-
-/**
- * Activate the selected account, play nav.wav, and update the label.
- **/
-static void OnActivate(void *ctx)
-{
+static void OnDialogOutcome(void* ctx, IME_Dialog_Outcome outcome) {
     char account_type[ACCOUNT_TYPE_MAX] = "np";
-    char account_name[ACCOUNT_NAME_MAX];
-    int account_index = (Uint64)ctx;
+    int account_numb = (int)(Uint64)ctx;
     int account_flags = 4098;
     Uint64 account_id;
     char buf[255];
 
-    if(OffAct_GetAccountName(account_index, account_name)) {
+    if(outcome != IME_DIALOG_COMPLETED) {
+	return;
+    }
+    if(IME_Dialog_GetText(buf, sizeof(buf)) < 0) {
+	return;
+    }
+    if(sscanf(buf, "0x%lx", &account_id) != 1) {
 	return;
     }
 
-    account_id = OffAct_AccountName2Id(account_name);
+    OffAct_SetAccountId(account_numb, account_id);
+    OffAct_SetAccountType(account_numb, account_type);
+    OffAct_SetAccountFlags(account_numb, account_flags);
 
-    OffAct_SetAccountId(account_index, account_id);
-    OffAct_SetAccountType(account_index, account_type);
-    OffAct_SetAccountFlags(account_index, account_flags);
+    OnListRefresh();
+}
 
-    if(GetLabel(account_index, buf, sizeof(buf))) {
-	ListUI_SetItemLabel(ui, selected_item_id, buf);
+
+/**
+ * Play nav.wav when a new item is selected.
+ **/
+static void OnSelectItem(void *ctx, Uint64 item_id)
+{
+    Mix_PlayChannel(-1, snd_nav, 0);
+}
+
+
+/**
+ * Play nav.wav and bring up the IME dialog for user input.
+ **/
+static void OnActivateItem(void *ctx, Uint64 item_id)
+{
+    int account_numb = (int)(Uint64)ctx;
+    char account_name[ACCOUNT_NAME_MAX];
+    Uint64 account_id;
+    char buf[255];
+
+    if(OffAct_GetAccountName(account_numb, account_name)) {
+	return;
+    }
+    if(OffAct_GetAccountId(account_numb, &account_id)) {
+	return;
+    }
+    if(!account_id) {
+	account_id = OffAct_GenAccountId(account_name);
+    }
+    sprintf(buf, "Enter account id for user '%s'", account_name);
+    if(IME_Dialog_SetTitle(buf) < 0) {
+	return;
+    }
+    sprintf(buf, "0x%lx", account_id);
+    if(IME_Dialog_SetText(buf) < 0) {
+	return;
     }
 
-    ListUI_OnActivate(ui, selected_item_id, 0, 0);
+    IME_Dialog_OnOutcome(OnDialogOutcome, (void*)(Uint64)account_numb);
+    if(IME_Dialog_Display()) {
+	return;
+    }
+
     Mix_PlayChannel(-1, snd_nav, 0);
+}
+
+
+static void OnListRefresh(void) {
+    Uint64 item_id;
+    char buf[255];
+
+    ListUI_Clear(ui);
+    for (int n=1; n<=ACCOUNT_NUMB_MAX; n++) {
+	*buf = 0;
+	if(GetItemLabel(n, buf, sizeof(buf)) < 0) {
+	    continue;
+	}
+
+	item_id = ListUI_AppendItem(ui, buf);
+	ListUI_OnSelect(ui, item_id, OnSelectItem, 0);
+	ListUI_OnActivate(ui, item_id, OnActivateItem, (void*)(Uint64)n);
+    }
 }
 
 
@@ -117,9 +168,9 @@ int main(int argc, char* args[])
     SDL_RWops* rwops;
     SDL_Event event;
     TTF_Font* font;
-    Uint64 item_id;
-    char buf[255];
     int quit = 0;
+
+    printf("The payload was compiled at %s %s\n", __DATE__, __TIME__);
 
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0) {
 	return -1;
@@ -160,19 +211,7 @@ int main(int argc, char* args[])
     }
 
     ui = ListUI_Create("Offline Account Activation");
-
-    for (Uint64 i=1; i<=ACCOUNT_MAX; i++) {
-	int account_id = GetLabel(i, buf, sizeof(buf));
-	if(account_id == -1) {
-	    continue;
-	}
-
-	item_id = ListUI_AppendItem(ui, buf);
-	ListUI_OnSelect(ui, item_id, OnSelect, (void*)item_id);
-	if(account_id == 0) {
-	    ListUI_OnActivate(ui, item_id, OnActivate, (void*)i);
-	}
-    }
+    OnListRefresh();
 
     while(!quit) {
 	while(SDL_PollEvent(&event) != 0) {
@@ -196,6 +235,8 @@ int main(int argc, char* args[])
 
 	ListUI_Render(ui, renderer, font);
 	SDL_RenderPresent(renderer);
+
+	IME_Dialog_PullStatus();
     }
 
     ListUI_Destroy(ui);

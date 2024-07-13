@@ -22,11 +22,10 @@ else
     $(error PS5_PAYLOAD_SDK is undefined)
 endif
 
-CFLAGS := -O2 -Wall -Wno-format-truncation
-CFLAGS += `$(PS5_SYSROOT)/bin/sdl2-config --cflags --libs`
-CFLAGS += -lSDL2_ttf `$(PS5_SYSROOT)/bin/freetype-config --libs`
-CFLAGS += -lSDL2_mixer
-CFLAGS += -lSceRegMgr
+CFLAGS := -O1 -g -Wall -Wno-format-truncation
+LDADD := `$(PS5_SYSROOT)/bin/sdl2-config --cflags --libs`
+LDADD += -lSDL2_mixer -lSDL2_ttf `$(PS5_SYSROOT)/bin/freetype-config --libs`
+LDADD += -lSceRegMgr -lSceImeDialog
 
 ELF := OffAct.elf
 
@@ -40,11 +39,11 @@ snd_nav.h: assets/nav.wav
 
 main.c: font.h snd_nav.h
 
-$(ELF): main.c SDL_listui.c offact.c
-	$(CC) -o $@ $^ $(CFLAGS)
+$(ELF): main.c offact.c IME_dialog.c SDL_listui.c
+	$(CC) $(CFLAGS) -o $@ $(LDADD) $^
 
 clean:
 	rm -f $(ELF) font.h snd_nav.h
 
 upload: $(ELF)
-	curl -T $^ ftp://$(PS5_HOST):2121/data/$^
+	curl -T $^ ftp://$(PS5_HOST):2121/data/homebrew/OffAct/$^

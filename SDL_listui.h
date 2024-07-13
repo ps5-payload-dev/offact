@@ -44,13 +44,25 @@ typedef struct SDL_ListUI SDL_ListUI;
 
 
 /**
- * Prototype for event callback functions.
+ * Prototype for OnSelect event callbacks.
  **/
-typedef void (ListUI_EventCallback)(void *ctx);
+typedef void (ListUI_OnSelectCallback)(void *ctx, Uint64 id);
 
 
 /**
- * Prototype for sort comparison functions.
+ * Prototype for OnActivate event callbacks.
+ **/
+typedef void (ListUI_OnActivateCallback)(void *ctx, Uint64 id);
+
+
+/**
+ * Prototype for OnDestroy event callbacks.
+ **/
+typedef void (ListUI_OnDestroyCallback)(void *ctx);
+
+
+/**
+ * Prototype for sort comparison callbacks.
  **/
 typedef int (ListUI_CompareCallback)(const char* s1, const char* s2);
 
@@ -71,7 +83,7 @@ void ListUI_Destroy(SDL_ListUI* l);
  * Change the callback function that is invoked when the ListUI instance
  * is about to free up all of its memory.
  **/
-void ListUI_OnDestroy(SDL_ListUI* l, ListUI_EventCallback* cb, void* ctx);
+void ListUI_OnDestroy(SDL_ListUI* l, ListUI_OnDestroyCallback* fn, void* ctx);
 
 
 /**
@@ -103,6 +115,12 @@ void ListUI_SetActivateTextColor(SDL_ListUI* l, SDL_Color c);
  * return a identifier that is unique to the new item.
  **/
 Uint64 ListUI_AppendItem(SDL_ListUI* l, const char* label);
+
+
+/**
+ * Remove all items from the list.
+ **/
+void ListUI_Clear(SDL_ListUI* l);
 
 
 /**
@@ -147,7 +165,7 @@ void ListUI_NavigatePageDown(SDL_ListUI* l, SDL_bool silent, SDL_bool wraparound
  * Change the callback function that is invoked when an item with the
  * given identifier is selected.
  **/
-SDL_bool ListUI_OnSelect(SDL_ListUI* l, Uint64 id, ListUI_EventCallback* cb,
+SDL_bool ListUI_OnSelect(SDL_ListUI* l, Uint64 id, ListUI_OnSelectCallback* fn,
 			 void* ctx);
 
 
@@ -161,7 +179,7 @@ void ListUI_ActivateSelected(SDL_ListUI* l);
  * Change the callback function that is invoked when an item with the
  * given identifier is activated.
  **/
-SDL_bool ListUI_OnActivate(SDL_ListUI* l, Uint64 id, ListUI_EventCallback* cb,
+SDL_bool ListUI_OnActivate(SDL_ListUI* l, Uint64 id, ListUI_OnActivateCallback* fn,
 			   void* ctx);
 
 

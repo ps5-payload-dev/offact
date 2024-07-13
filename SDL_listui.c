@@ -24,12 +24,14 @@ typedef struct ListUI_Item
     struct ListUI_Item *prev;
 
     // Event listeners
-    ListUI_EventCallback *select_cb;
-    ListUI_EventCallback *activate_cb;
-
-    // Event callback args
-    void *select_ctx;
-    void *activate_ctx;
+    struct {
+	ListUI_OnSelectCallback *fn;
+	void * ctx;
+    } on_select;
+    struct {
+	ListUI_OnActivateCallback *fn;
+	void * ctx;
+    } on_activate;
 } ListUI_Item;
 
 
@@ -50,10 +52,10 @@ struct SDL_ListUI
     ListUI_Item *bottom;
 
     // Event listeners
-    ListUI_EventCallback *destroy_cb;
-
-    // Event callback args
-    void *destroy_ctx;
+    struct {
+	ListUI_OnDestroyCallback *fn;
+	void * ctx;
+    } on_destroy;
 };
 
 
@@ -171,13 +173,9 @@ SDL_ListUI* ListUI_Create(const char* title)
 }
 
 
-void ListUI_Destroy(SDL_ListUI* l)
+void ListUI_Clear(SDL_ListUI* l)
 {
     ListUI_Item *next;
-
-    if(l->destroy_cb) {
-	l->destroy_cb(l->destroy_ctx);
-    }
 
     while(l->first) {
 	next = l->first->next;
@@ -185,16 +183,27 @@ void ListUI_Destroy(SDL_ListUI* l)
 	SDL_free(l->first);
 	l->first = next;
     }
+    l->top = l->selected = l->bottom = 0;
+}
 
+
+void ListUI_Destroy(SDL_ListUI* l)
+{
+
+    if(l->on_destroy.fn) {
+	l->on_destroy.fn(l->on_destroy.ctx);
+    }
+
+    ListUI_Clear(l);
     SDL_free(l->title);
     SDL_free(l);
 }
 
 
-void ListUI_OnDestroy(SDL_ListUI* l, ListUI_EventCallback* cb, void* ctx)
+void ListUI_OnDestroy(SDL_ListUI* l, ListUI_OnDestroyCallback* fn, void* ctx)
 {
-    l->destroy_cb = cb;
-    l->destroy_ctx = ctx;
+    l->on_destroy.fn = fn;
+    l->on_destroy.ctx = ctx;
 }
 
 
@@ -276,14 +285,14 @@ SDL_bool ListUI_SetItemLabel(SDL_ListUI* l, Uint64 id, const char* label)
 }
 
 
-SDL_bool ListUI_OnSelect(SDL_ListUI* l, Uint64 id, ListUI_EventCallback* cb,
-			 void* ctx)
+SDL_bool ListUI_OnSelect(SDL_ListUI* l, Uint64 id,
+			 ListUI_OnSelectCallback* fn, void* ctx)
 {
     ListUI_Item* it = ListUI_GetItem(l, id);
 
     if(it) {
-	it->select_cb = cb;
-	it->select_ctx = ctx;
+	it->on_select.fn = fn;
+	it->on_select.ctx = ctx;
 	return SDL_TRUE;
     }
 
@@ -291,14 +300,14 @@ SDL_bool ListUI_OnSelect(SDL_ListUI* l, Uint64 id, ListUI_EventCallback* cb,
 }
 
 
-SDL_bool ListUI_OnActivate(SDL_ListUI* l, Uint64 id, ListUI_EventCallback* cb,
-			   void* ctx)
+SDL_bool ListUI_OnActivate(SDL_ListUI* l, Uint64 id,
+			   ListUI_OnActivateCallback* fn, void* ctx)
 {
     ListUI_Item* it = ListUI_GetItem(l, id);
 
     if(it) {
-	it->activate_cb = cb;
-	it->activate_ctx = ctx;
+	it->on_activate.fn = fn;
+	it->on_activate.ctx = ctx;
 	return SDL_TRUE;
     }
 
@@ -321,8 +330,9 @@ void ListUI_NavigateItemUp(SDL_ListUI* l, SDL_bool silent, SDL_bool wraparound)
 	}
     }
 
-    if(l->selected && l->selected->select_cb && !silent) {
-	l->selected->select_cb(l->selected->select_ctx);
+    if(l->selected && l->selected->on_select.fn && !silent) {
+	l->selected->on_select.fn(l->selected->on_select.ctx,
+				  (Uint64)l->selected);
     }
 }
 
@@ -342,8 +352,9 @@ void ListUI_NavigateItemDown(SDL_ListUI* l, SDL_bool silent, SDL_bool wraparound
 	}
     }
 
-    if(l->selected && l->selected->select_cb && !silent) {
-	l->selected->select_cb(l->selected->select_ctx);
+    if(l->selected && l->selected->on_select.fn && !silent) {
+	l->selected->on_select.fn(l->selected->on_select.ctx,
+				  (Uint64)l->selected);
     }
 }
 
@@ -382,11 +393,12 @@ void ListUI_NavigatePageDown(SDL_ListUI* l, SDL_bool silent, SDL_bool wraparound
 
 void ListUI_ActivateSelected(SDL_ListUI* l)
 {
-    if(!l->selected || !l->selected->activate_cb) {
+    if(!l->selected || !l->selected->on_activate.fn) {
 	return;
     }
 
-    l->selected->activate_cb(l->selected->activate_ctx);
+    l->selected->on_activate.fn(l->selected->on_activate.ctx,
+				(Uint64)l->selected);
 }
 
 
@@ -416,7 +428,7 @@ static void ListUI_RenderItem(SDL_ListUI* l, SDL_Renderer* renderer,
 	SDL_strlcat(text, item->label, sizeof(text));
 	ListUI_RenderText(renderer, text, font, x, y, l->selected_color);
 
-    } else if (item->activate_cb) {
+    } else if (item->on_activate.fn) {
 	SDL_strlcat(text, " ", sizeof(text));
 	SDL_strlcat(text, item->label, sizeof(text));
 	ListUI_RenderText(renderer, text, font, x + item_height, y,

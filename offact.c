@@ -35,7 +35,7 @@ static int OffAct_GetEntityNumber(int a, int b, int c, int d, int e)
 }
 
 
-uint64_t OffAct_AccountName2Id(const char *name) {
+uint64_t OffAct_GenAccountId(const char *name) {
     uint64_t base = 0x5EAF00D / 0xCA7F00D;
     if (*name) {
 	do {
@@ -46,55 +46,62 @@ uint64_t OffAct_AccountName2Id(const char *name) {
 }
 
 
-int OffAct_GetAccountName(int account_num, char val[ACCOUNT_NAME_MAX])
+int OffAct_GetAccountName(int account_numb, char val[ACCOUNT_NAME_MAX])
 {
-    int n = OffAct_GetEntityNumber(account_num, 16U, 65536U, 125829632U, 127140352U);
+    int n = OffAct_GetEntityNumber(account_numb, 16U, 65536U, 125829632U,
+				   127140352U);
     *val = 0;
     return sceRegMgrGetStr(n, val, ACCOUNT_NAME_MAX);
 }
 
 
-int OffAct_GetAccountId(int account_num, uint64_t* val)
+int OffAct_GetAccountId(int account_numb, uint64_t* val)
 {
-    int n = OffAct_GetEntityNumber(account_num, 16U, 65536U, 125830400U, 127141120U);
+    int n = OffAct_GetEntityNumber(account_numb, 16U, 65536U, 125830400U,
+				   127141120U);
     *val = 0;
     return sceRegMgrGetBin(n, val, sizeof(uint64_t));
 }
 
 
-int OffAct_SetAccountId(int account_num, uint64_t val)
+int OffAct_SetAccountId(int account_numb, uint64_t val)
 {
-    int n = OffAct_GetEntityNumber(account_num, 16U, 65536U, 125830400U, 127141120U);
+    int n = OffAct_GetEntityNumber(account_numb, 16U, 65536U, 125830400U,
+				   127141120U);
     return sceRegMgrSetBin(n, &val, sizeof(uint64_t));
 }
 
 
-int OffAct_GetAccountType(int account_num, char val[ACCOUNT_TYPE_MAX])
+int OffAct_GetAccountType(int account_numb, char val[ACCOUNT_TYPE_MAX])
 {
-    int n = OffAct_GetEntityNumber(account_num, 16U, 65536U, 125874183U, 127184903U);
+    int n = OffAct_GetEntityNumber(account_numb, 16U, 65536U, 125874183U,
+				   127184903U);
     *val = 0;
     return sceRegMgrGetStr(n, val, ACCOUNT_TYPE_MAX);
 }
 
 
-int OffAct_SetAccountType(int account_num, char val[ACCOUNT_TYPE_MAX])
+int OffAct_SetAccountType(int account_numb, char val[ACCOUNT_TYPE_MAX])
 {
-    int n = OffAct_GetEntityNumber(account_num, 16U, 65536U, 125874183U, 127184903U);
+    int n = OffAct_GetEntityNumber(account_numb, 16U, 65536U, 125874183U,
+				   127184903U);
     return sceRegMgrSetStr(n, val, ACCOUNT_TYPE_MAX);
 }
 
 
-int OffAct_GetAccountFlags(int account_num, int *val)
+int OffAct_GetAccountFlags(int account_numb, int *val)
 {
-    int n = OffAct_GetEntityNumber(account_num, 16U, 65536U, 125831168U, 127141888U);
+    int n = OffAct_GetEntityNumber(account_numb, 16U, 65536U, 125831168U,
+				   127141888U);
     *val = 0;
     return sceRegMgrGetInt(n, val);
 }
 
 
-int OffAct_SetAccountFlags(int account_num, int val)
+int OffAct_SetAccountFlags(int account_numb, int val)
 {
-    int n = OffAct_GetEntityNumber(account_num, 16U, 65536U, 125831168U, 127141888U);
+    int n = OffAct_GetEntityNumber(account_numb, 16U, 65536U, 125831168U,
+				   127141888U);
     return sceRegMgrSetInt(n, val);
 }
 
