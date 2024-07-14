@@ -162,10 +162,10 @@ SDL_ListUI* ListUI_Create(const char* title)
     l->activate_color.b = 240;
     l->activate_color.a = 255;
 
-    l->selected_color.r = 240;
-    l->selected_color.g = 240;
+    l->selected_color.r = 120;
+    l->selected_color.g = 120;
     l->selected_color.b = 0;
-    l->selected_color.a = 255;
+    l->selected_color.a = 100;
 
     ListUI_SetTitle(l, title);
 
@@ -191,7 +191,7 @@ void ListUI_Destroy(SDL_ListUI* l)
 {
 
     if(l->on_destroy.fn) {
-	l->on_destroy.fn(l->on_destroy.ctx);
+	l->on_destroy.fn(l->on_destroy.ctx, l);
     }
 
     ListUI_Clear(l);
@@ -331,7 +331,7 @@ void ListUI_NavigateItemUp(SDL_ListUI* l, SDL_bool silent, SDL_bool wraparound)
     }
 
     if(l->selected && l->selected->on_select.fn && !silent) {
-	l->selected->on_select.fn(l->selected->on_select.ctx,
+	l->selected->on_select.fn(l->selected->on_select.ctx, l,
 				  (Uint64)l->selected);
     }
 }
@@ -353,7 +353,7 @@ void ListUI_NavigateItemDown(SDL_ListUI* l, SDL_bool silent, SDL_bool wraparound
     }
 
     if(l->selected && l->selected->on_select.fn && !silent) {
-	l->selected->on_select.fn(l->selected->on_select.ctx,
+	l->selected->on_select.fn(l->selected->on_select.ctx, l,
 				  (Uint64)l->selected);
     }
 }
@@ -397,7 +397,7 @@ void ListUI_ActivateSelected(SDL_ListUI* l)
 	return;
     }
 
-    l->selected->on_activate.fn(l->selected->on_activate.ctx,
+    l->selected->on_activate.fn(l->selected->on_activate.ctx, l,
 				(Uint64)l->selected);
 }
 
@@ -415,38 +415,11 @@ static void ListUI_RenderText(SDL_Renderer* renderer, const char* text,
 }
 
 
-static void ListUI_RenderItem(SDL_ListUI* l, SDL_Renderer* renderer,
-			      TTF_Font* font, ListUI_Item* item,
-			      int x, int y)
-{
-    int item_height = (int)(TTF_FontHeight(font) * 1.1);
-    char text[0x1000];
-
-    *text = 0;
-    if(item == l->selected) {
-	SDL_strlcat(text, "-> ", sizeof(text));
-	SDL_strlcat(text, item->label, sizeof(text));
-	ListUI_RenderText(renderer, text, font, x, y, l->selected_color);
-
-    } else if (item->on_activate.fn) {
-	SDL_strlcat(text, " ", sizeof(text));
-	SDL_strlcat(text, item->label, sizeof(text));
-	ListUI_RenderText(renderer, text, font, x + item_height, y,
-			  l->activate_color);
-
-    } else {
-	SDL_strlcat(text, " ", sizeof(text));
-	SDL_strlcat(text, item->label, sizeof(text));
-	ListUI_RenderText(renderer, text, font, x + item_height, y,
-			  l->text_color);
-    }
-}
-
-
 void ListUI_Render(SDL_ListUI* l, SDL_Renderer* renderer, TTF_Font* font)
 {
     int item_height = (int)(TTF_FontHeight(font) * 1.1);
     ListUI_Item* it;
+    SDL_Color color;
     SDL_Rect rect;
     int x = 0;
     int y = 0;
@@ -485,7 +458,24 @@ void ListUI_Render(SDL_ListUI* l, SDL_Renderer* renderer, TTF_Font* font)
     // Render list of items
     it = l->top;
     while(y < h-item_height && it) {
-	ListUI_RenderItem(l, renderer, font, it, x, y);
+	if(it == l->selected) {
+	    rect.x = x;
+	    rect.y = y;
+	    rect.w = w;
+	    rect.h = TTF_FontHeight(font);
+	    SDL_SetRenderDrawColor(renderer,
+				   l->selected_color.r, l->selected_color.g,
+				   l->selected_color.b, l->selected_color.a);
+	    SDL_RenderFillRect(renderer, &rect);
+	}
+	if (it->on_activate.fn) {
+	    color = l->activate_color;
+	} else {
+	    color = l->text_color;
+	}
+
+	ListUI_RenderText(renderer, it->label, font, x+item_height, y, color);
+
 	l->bottom = it;
 	it = it->next;
 	y += item_height;

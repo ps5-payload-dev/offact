@@ -35,7 +35,7 @@ static Mix_Chunk* snd_nav;
 static SDL_ListUI *ui;
 
 
-static void OnListRefresh(void);
+static void refreshListUI(void);
 
 
 /**
@@ -93,14 +93,14 @@ static void OnDialogOutcome(void* ctx, IME_Dialog_Outcome outcome) {
     OffAct_SetAccountType(account_numb, account_type);
     OffAct_SetAccountFlags(account_numb, account_flags);
 
-    OnListRefresh();
+    refreshListUI();
 }
 
 
 /**
  * Play nav.wav when a new item is selected.
  **/
-static void OnSelectItem(void *ctx, Uint64 item_id)
+static void OnSelectItem(void *ctx, SDL_ListUI *listui, Uint64 item_id)
 {
     Mix_PlayChannel(-1, snd_nav, 0);
 }
@@ -109,7 +109,7 @@ static void OnSelectItem(void *ctx, Uint64 item_id)
 /**
  * Play nav.wav and bring up the IME dialog for user input.
  **/
-static void OnActivateItem(void *ctx, Uint64 item_id)
+static void OnActivateItem(void *ctx, SDL_ListUI *listui, Uint64 item_id)
 {
     int account_numb = (int)(Uint64)ctx;
     char account_name[ACCOUNT_NAME_MAX];
@@ -125,7 +125,7 @@ static void OnActivateItem(void *ctx, Uint64 item_id)
     if(!account_id) {
 	account_id = OffAct_GenAccountId(account_name);
     }
-    sprintf(buf, "Enter account id for user '%s'", account_name);
+    sprintf(buf, "Enter account id for user %s", account_name);
     if(IME_Dialog_SetTitle(buf) < 0) {
 	return;
     }
@@ -143,7 +143,7 @@ static void OnActivateItem(void *ctx, Uint64 item_id)
 }
 
 
-static void OnListRefresh(void) {
+static void refreshListUI(void) {
     Uint64 item_id;
     char buf[255];
 
@@ -211,7 +211,7 @@ int main(int argc, char* args[])
     }
 
     ui = ListUI_Create("Offline Account Activation");
-    OnListRefresh();
+    refreshListUI();
 
     while(!quit) {
 	while(SDL_PollEvent(&event) != 0) {

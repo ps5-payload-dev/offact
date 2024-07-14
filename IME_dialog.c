@@ -93,9 +93,7 @@ int sceImeDialogTerm(void);
 SceImeDialogStatus sceImeDialogGetStatus(void);
 
 
-static IME_Dialog_OnOutcomeCallback* g_outcome_fn;
 static SceImeDialogStatus g_status;
-static void* g_outcome_ctx = 0;
 static wchar_t g_title[0x80];
 static wchar_t g_text[0x800];
 
@@ -107,10 +105,16 @@ static SceImeDialogParam g_param =
 };
 
 
+static struct {
+    IME_Dialog_OnOutcomeCallback* fn;
+    void* ctx;
+} g_outcome_cb = {0};
+
+
 void IME_Dialog_OnOutcome(IME_Dialog_OnOutcomeCallback *fn, void* ctx)
 {
-    g_outcome_fn = fn;
-    g_outcome_ctx = ctx;
+    g_outcome_cb.fn = fn;
+    g_outcome_cb.ctx = ctx;
 }
 
 
@@ -144,6 +148,8 @@ int IME_Dialog_GetText(char* text, size_t size)
 int IME_Dialog_Display(void)
 {
     int err;
+
+    g_param.type = SCE_IME_TYPE_BASIC_LATIN;
     if((err=sceUserServiceGetForegroundUser(&g_param.userId))) {
 	return err;
     }
@@ -158,6 +164,8 @@ int IME_Dialog_PullStatus(void)
 {
     SceImeDialogStatus status = sceImeDialogGetStatus();
     SceImeDialogResult result = {0};
+    IME_Dialog_Outcome outcome;
+
     int err;
 
     if(g_status == status) {
@@ -169,10 +177,13 @@ int IME_Dialog_PullStatus(void)
     switch(status) {
     case SCE_IME_DIALOG_STATUS_NONE:
 	return 0;
+
     case SCE_IME_DIALOG_STATUS_RUNNING:
 	return 1;
+
     case SCE_IME_DIALOG_STATUS_FINISHED:
 	break;
+
     default:
 	return -1;
     }
@@ -181,29 +192,30 @@ int IME_Dialog_PullStatus(void)
 	return -1;
     }
     if((err=sceImeDialogTerm())) {
-	return err;
+	return -1;
     }
 
     switch(result.outcome) {
     case SCE_IME_DIALOG_END_STATUS_OK:
-	if(g_outcome_fn) {
-	    g_outcome_fn(g_outcome_ctx, IME_DIALOG_COMPLETED);
-	}
-	return 0;
+	outcome = IME_DIALOG_COMPLETED;
+	break;
+
     case SCE_IME_DIALOG_END_STATUS_USER_CANCELED:
-	if(g_outcome_fn) {
-	    g_outcome_fn(g_outcome_ctx, IME_DIALOG_CANCELED);
-	}
-	return 0;
+	outcome = IME_DIALOG_CANCELED;
+	break;
+
     case SCE_IME_DIALOG_END_STATUS_ABORTED:
-	if(g_outcome_fn) {
-	    g_outcome_fn(g_outcome_ctx, IME_DIALOG_ABORTED);
-	}
-	return 0;
+	outcome = IME_DIALOG_ABORTED;
+	break;
     default:
 	return -1;
     }
-    return -1;
+
+    if(g_outcome_cb.fn) {
+	g_outcome_cb.fn(g_outcome_cb.ctx, outcome);
+    }
+
+    return 0;
 }
 
 

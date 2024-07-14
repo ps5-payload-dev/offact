@@ -46,19 +46,19 @@ typedef struct SDL_ListUI SDL_ListUI;
 /**
  * Prototype for OnSelect event callbacks.
  **/
-typedef void (ListUI_OnSelectCallback)(void *ctx, Uint64 id);
+typedef void (ListUI_OnSelectCallback)(void *ctx, SDL_ListUI* l, Uint64 id);
 
 
 /**
  * Prototype for OnActivate event callbacks.
  **/
-typedef void (ListUI_OnActivateCallback)(void *ctx, Uint64 id);
+typedef void (ListUI_OnActivateCallback)(void *ctx, SDL_ListUI* l, Uint64 id);
 
 
 /**
  * Prototype for OnDestroy event callbacks.
  **/
-typedef void (ListUI_OnDestroyCallback)(void *ctx);
+typedef void (ListUI_OnDestroyCallback)(void *ctx, SDL_ListUI* l);
 
 
 /**
