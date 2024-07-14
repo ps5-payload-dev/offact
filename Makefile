@@ -22,7 +22,9 @@ else
     $(error PS5_PAYLOAD_SDK is undefined)
 endif
 
-CFLAGS := -O1 -g -Wall -Wno-format-truncation
+VERSION_TAG := $(shell git describe --abbrev=10 --dirty --always --tags)
+
+CFLAGS := -O1 -g -Wall -Wno-format-truncation -DVERSION_TAG=\"$(VERSION_TAG)\"
 LDADD := `$(PS5_SYSROOT)/bin/sdl2-config --cflags --libs`
 LDADD += -lSDL2_mixer -lSDL2_ttf `$(PS5_SYSROOT)/bin/freetype-config --libs`
 LDADD += -lSceRegMgr -lSceImeDialog
@@ -37,7 +39,10 @@ font.h: assets/font.ttf
 snd_nav.h: assets/nav.wav
 	xxd -i $< $@
 
-main.c: font.h snd_nav.h
+readme.h: README.md
+	xxd -i $< $@
+
+main.c: font.h snd_nav.h readme.h
 
 $(ELF): main.c offact.c IME_dialog.c SDL_listui.c
 	$(CC) $(CFLAGS) -o $@ $(LDADD) $^

@@ -23,6 +23,7 @@ along with this program; see the file COPYING. If not, see
 #include "offact.h"
 
 #include "font.h"
+#include "readme.h"
 #include "snd_nav.h"
 
 
@@ -107,7 +108,7 @@ static void OnSelectItem(void *ctx, SDL_ListUI *listui, Uint64 item_id)
 
 
 /**
- * Play nav.wav and bring up the IME dialog for user input.
+ * Bring up the IME dialog for user input.
  **/
 static void OnActivateItem(void *ctx, SDL_ListUI *listui, Uint64 item_id)
 {
@@ -138,8 +139,6 @@ static void OnActivateItem(void *ctx, SDL_ListUI *listui, Uint64 item_id)
     if(IME_Dialog_Display()) {
 	return;
     }
-
-    Mix_PlayChannel(-1, snd_nav, 0);
 }
 
 
@@ -170,6 +169,7 @@ int main(int argc, char* args[])
     TTF_Font* font;
     int quit = 0;
 
+    printf("%s\n", README_md);
     printf("The payload was compiled at %s %s\n", __DATE__, __TIME__);
 
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0) {
@@ -210,7 +210,10 @@ int main(int argc, char* args[])
 	return -1;
     }
 
-    ui = ListUI_Create("Offline Account Activation");
+    ui = ListUI_Create("Offline Account Activation " VERSION_TAG);
+    ListUI_SetSelectedColor(ui, (SDL_Color){0x3b, 0x40, 0x47, 0xff});
+    ListUI_SetTextColor(ui, (SDL_Color){0xb9, 0xbb, 0xbb, 0xff});
+    ListUI_SetActivateTextColor(ui, (SDL_Color){0xff, 0xff, 0xff, 0xff});
     refreshListUI();
 
     while(!quit) {
@@ -230,7 +233,7 @@ int main(int argc, char* args[])
 	    }
 	}
 
-	SDL_SetRenderDrawColor(renderer, 5, 5, 5, 255);
+	SDL_SetRenderDrawColor(renderer, 0x05, 0x0d, 0x1c, 0xff);
 	SDL_RenderClear(renderer);
 
 	ListUI_Render(ui, renderer, font);

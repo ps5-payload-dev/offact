@@ -155,7 +155,7 @@ SDL_ListUI* ListUI_Create(const char* title)
     l->text_color.r = 240;
     l->text_color.g = 240;
     l->text_color.b = 240;
-    l->text_color.a = 100;
+    l->text_color.a = 120;
 
     l->activate_color.r = 240;
     l->activate_color.g = 240;
@@ -165,7 +165,7 @@ SDL_ListUI* ListUI_Create(const char* title)
     l->selected_color.r = 120;
     l->selected_color.g = 120;
     l->selected_color.b = 0;
-    l->selected_color.a = 100;
+    l->selected_color.a = 255;
 
     ListUI_SetTitle(l, title);
 
@@ -225,7 +225,7 @@ void ListUI_SetTextColor(SDL_ListUI* l, SDL_Color c)
 }
 
 
-void ListUI_SetSelectedTextColor(SDL_ListUI* l, SDL_Color c)
+void ListUI_SetSelectedColor(SDL_ListUI* l, SDL_Color c)
 {
     l->selected_color = c;
 }
@@ -417,7 +417,8 @@ static void ListUI_RenderText(SDL_Renderer* renderer, const char* text,
 
 void ListUI_Render(SDL_ListUI* l, SDL_Renderer* renderer, TTF_Font* font)
 {
-    int item_height = (int)(TTF_FontHeight(font) * 1.1);
+    int item_height = (int)TTF_FontHeight(font);
+    int padding = item_height / 4;
     ListUI_Item* it;
     SDL_Color color;
     SDL_Rect rect;
@@ -429,19 +430,22 @@ void ListUI_Render(SDL_ListUI* l, SDL_Renderer* renderer, TTF_Font* font)
 	return;
     }
 
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
     // Render title
-    ListUI_RenderText(renderer, l->title, font, x, y, l->activate_color);
+    y += padding;
+    ListUI_RenderText(renderer, l->title, font, x+padding, y, l->activate_color);
     y += item_height;
 
     // Render horizontal line
     rect.x = x;
     rect.y = y;
     rect.w = w;
-    rect.h = item_height / 12;
-    SDL_SetRenderDrawColor(renderer, l->text_color.r, l->text_color.g,
-			   l->text_color.b, l->text_color.a);
+    rect.h = padding / 4;
+    SDL_SetRenderDrawColor(renderer, l->activate_color.r, l->activate_color.g,
+			   l->activate_color.b, l->activate_color.a);
     SDL_RenderFillRect(renderer, &rect);
-    y += 6*rect.h;
+    y += padding;
 
     if(!l->selected) {
 	l->selected = l->top = l->first;
@@ -450,7 +454,7 @@ void ListUI_Render(SDL_ListUI* l, SDL_Renderer* renderer, TTF_Font* font)
     // Cursor moved from top to bottom, figure out how many items we can fit
     if(!l->top && l->bottom) {
 	l->top = l->bottom;
-	for(int i=y; i<h-item_height*2 && l->top->prev; i+=item_height) {
+	for(int i=y; i < h-item_height-padding && l->top->prev; i+=item_height) {
 	    l->top = l->top->prev;
 	}
     }
@@ -474,7 +478,7 @@ void ListUI_Render(SDL_ListUI* l, SDL_Renderer* renderer, TTF_Font* font)
 	    color = l->text_color;
 	}
 
-	ListUI_RenderText(renderer, it->label, font, x+item_height, y, color);
+	ListUI_RenderText(renderer, it->label, font, x+padding, y, color);
 
 	l->bottom = it;
 	it = it->next;

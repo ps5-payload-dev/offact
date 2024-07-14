@@ -101,7 +101,7 @@ void ListUI_SetTextColor(SDL_ListUI* l, SDL_Color c);
 /**
  * Change the text color of selected items.
  **/
-void ListUI_SetSelectedTextColor(SDL_ListUI* l, SDL_Color c);
+void ListUI_SetSelectedColor(SDL_ListUI* l, SDL_Color c);
 
 
 /**
