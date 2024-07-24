@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    paths-ignore:
+      - "**/*.md"
+      - '**/*.txt'
+  pull_request:
+    paths-ignore:
+      - "**/*.md"
+      - '**/*.txt'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.event_name  }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install build-essential clang-15 lld-15
+
+    - name: Install toolchain
+      run: |
+        wget https://github.com/ps5-payload-dev/pacbrew-repo/releases/download/v0.5/ps5-payload-dev.tar.gz
+        sudo tar xf ps5-payload-dev.tar.gz -C /
+
+    - name: Build
+      run: |
+        PS5_PAYLOAD_SDK=/opt/pacbrew/ps5/payload-sdk make
+
+    - name: Upload Payload
+      uses: actions/upload-artifact@v3
+      with:
+        name: Payload
+        path: ./OffAct.elf
+        if-no-files-found: error
+
