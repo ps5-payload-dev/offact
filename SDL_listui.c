@@ -370,7 +370,7 @@ void ListUI_NavigatePageUp(SDL_ListUI* l, SDL_bool silent, SDL_bool wraparound)
 	ListUI_NavigateItemUp(l, SDL_TRUE, wraparound);
     }
     if(n) {
-	ListUI_NavigateItemUp(l, wraparound, silent);
+	ListUI_NavigateItemUp(l, silent, wraparound);
     }
 }
 
@@ -386,7 +386,7 @@ void ListUI_NavigatePageDown(SDL_ListUI* l, SDL_bool silent, SDL_bool wraparound
 	ListUI_NavigateItemDown(l, SDL_TRUE, wraparound);
     }
     if(n) {
-	ListUI_NavigateItemDown(l, wraparound, silent);
+	ListUI_NavigateItemDown(l, silent, wraparound);
     }
 }
 
