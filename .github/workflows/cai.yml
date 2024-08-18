@@ -30,12 +30,12 @@ jobs:
 
     - name: Install toolchain
       run: |
-        wget https://github.com/ps5-payload-dev/pacbrew-repo/releases/download/v0.5/ps5-payload-dev.tar.gz
+        wget https://github.com/ps5-payload-dev/pacbrew-repo/releases/download/v0.7/ps5-payload-dev.tar.gz
         sudo tar xf ps5-payload-dev.tar.gz -C /
 
     - name: Build
       run: |
-        PS5_PAYLOAD_SDK=/opt/pacbrew/ps5/payload-sdk make
+        PS5_PAYLOAD_SDK=/opt/ps5-payload-sdk make
 
     - name: Upload Payload
       uses: actions/upload-artifact@v3
