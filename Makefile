@@ -25,8 +25,8 @@ endif
 VERSION_TAG := $(shell git describe --abbrev=10 --dirty --always --tags)
 
 CFLAGS := -O1 -g -Wall -Wno-format-truncation -DVERSION_TAG=\"$(VERSION_TAG)\"
-LDADD := `$(PS5_SYSROOT)/bin/sdl2-config --cflags --libs`
-LDADD += -lSDL2_mixer -lSDL2_ttf `$(PS5_SYSROOT)/bin/freetype-config --libs`
+LDADD := `$(PS5_PAYLOAD_SDK)/bin/prospero-sdl2-config --cflags --libs`
+LDADD += -lSDL2_mixer -lSDL2_ttf `$(PS5_PAYLOAD_SDK)/bin/prospero-freetype-config --libs`
 LDADD += -lSceRegMgr -lSceImeDialog
 
 ELF := OffAct.elf
