@@ -85,7 +85,11 @@ int OffAct_SetAccountType(int account_numb, char val[ACCOUNT_TYPE_MAX])
 {
     int n = OffAct_GetEntityNumber(account_numb, 16U, 65536U, 125874183U,
 				   127184903U);
-    return sceRegMgrSetStr(n, val, ACCOUNT_TYPE_MAX);
+    size_t s = 0;
+    do {
+        s++;
+    } while (val[s - 1]);
+    return sceRegMgrSetStr(n, val, s);
 }
 
 
