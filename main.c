@@ -27,7 +27,7 @@ along with this program; see the file COPYING. If not, see
 
 #define WINDOW_TITLE  "OffAct"
 #define SCREEN_WIDTH  1920
-#define SCREEN_HEIGHT 1280
+#define SCREEN_HEIGHT 1080
 
 
 static SDL_ListUI *ui;
@@ -183,7 +183,7 @@ int SDL_main(int argc, char* args[])
         printf("TTF_Init: %s\n", TTF_GetError());
 	return -1;
     }
-    if(!(font=TTF_OpenFont("/preinst/common/font/n023055ms.ttf", 84))) {
+    if(!(font=TTF_OpenFont("/preinst/common/font/n023055ms.ttf", 44))) {
         printf("TTF_Init: %s\n", TTF_GetError());
         return 1;
     }
