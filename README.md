@@ -2,7 +2,7 @@
 This is a simple homebrew for activating accounts on PS5s.
 
 ## Limitations
-- Does not enable remote play
+- Does not enable remote play, use [LinkDev][linkdev] for that.
 - Does not enable export or import of game saves
 - Does not enable online PSN gaming
 
@@ -16,3 +16,4 @@ to discuss the solution properly before you commit time and effort.
 offact is licensed under the GPLv3+.
 
 [issues]: https://github.com/ps5-payload-dev/offact/issues/new
+[linkdev]: https://github.com/ps5-payload-dev/linkdev
