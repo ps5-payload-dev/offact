@@ -35,12 +35,12 @@ jobs:
 
     - name: Build
       run: |
-        PS5_PAYLOAD_SDK=/opt/ps5-payload-sdk make
+        PS5_PAYLOAD_SDK=/opt/ps5-payload-sdk make dist
 
     - name: Upload Payload
       uses: actions/upload-artifact@v3
       with:
-        name: Payload
-        path: ./OffAct.elf
+        name: OffAct
+        path: OffAct.zip
         if-no-files-found: error
 
