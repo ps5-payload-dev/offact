@@ -22,9 +22,7 @@ along with this program; see the file COPYING. If not, see
 #include "SDL_listui.h"
 #include "offact.h"
 
-#include "font.h"
 #include "readme.h"
-#include "snd_nav.h"
 
 
 #define WINDOW_TITLE  "OffAct"
@@ -32,7 +30,6 @@ along with this program; see the file COPYING. If not, see
 #define SCREEN_HEIGHT 1280
 
 
-static Mix_Chunk* snd_nav;
 static SDL_ListUI *ui;
 
 
@@ -99,15 +96,6 @@ static void OnDialogOutcome(void* ctx, IME_Dialog_Outcome outcome) {
 
 
 /**
- * Play nav.wav when a new item is selected.
- **/
-static void OnSelectItem(void *ctx, SDL_ListUI *listui, Uint64 item_id)
-{
-    Mix_PlayChannel(-1, snd_nav, 0);
-}
-
-
-/**
  * Bring up the IME dialog for user input.
  **/
 static void OnActivateItem(void *ctx, SDL_ListUI *listui, Uint64 item_id)
@@ -154,60 +142,50 @@ static void refreshListUI(void) {
 	}
 
 	item_id = ListUI_AppendItem(ui, buf);
-	ListUI_OnSelect(ui, item_id, OnSelectItem, 0);
 	ListUI_OnActivate(ui, item_id, OnActivateItem, (void*)(Uint64)n);
     }
 }
 
 
-int main(int argc, char* args[])
+int SDL_main(int argc, char* args[])
 {
     SDL_Renderer* renderer;
     SDL_Window* window;
-    SDL_RWops* rwops;
     SDL_Event event;
     TTF_Font* font;
     int quit = 0;
 
     printf("%s\n", README_md);
-    printf("The payload was compiled at %s %s\n", __DATE__, __TIME__);
+    printf("%s %s was compiled at %s %s\n",
+           WINDOW_TITLE, VERSION_TAG, __DATE__, __TIME__);
 
     if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0) {
+        printf("SDL_Init: %s\n", SDL_GetError());
 	return -1;
     }
 
     if(!(window=SDL_CreateWindow(WINDOW_TITLE, SDL_WINDOWPOS_UNDEFINED,
 				 SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH,
 				 SCREEN_HEIGHT, SDL_WINDOW_FULLSCREEN))) {
+        printf("SDL_CreateWindow: %s\n", SDL_GetError());
 	return -1;
     }
 
     if(!(renderer=SDL_CreateRenderer(window, -1, (SDL_RENDERER_PRESENTVSYNC |
 						  SDL_RENDERER_SOFTWARE)))) {
+        printf("SDL_CreateRenderer: %s\n", SDL_GetError());
 	return -1;
     }
 
     SDL_GameControllerOpen(0);
 
-    if(Mix_OpenAudio(48000, MIX_DEFAULT_FORMAT, 2, 2048) < 0) {
-	return -1;
-    }
-
-    if(!(rwops=SDL_RWFromMem(assets_nav_wav, assets_nav_wav_len))) {
-	return -1;
-    }
-    if(!(snd_nav=Mix_LoadWAV_RW(rwops, 1))) {
-	return -1;
-    }
-
     if(TTF_Init()  < 0) {
+        printf("TTF_Init: %s\n", TTF_GetError());
 	return -1;
     }
-    if(!(rwops=SDL_RWFromMem(assets_font_ttf, assets_font_ttf_len))) {
-	return -1;
-    }
-    if(!(font=TTF_OpenFontRW(rwops, 1, 38))) {
-	return -1;
+    if(!(font=TTF_OpenFont("/preinst/common/font/n023055ms.ttf", 84))) {
+        printf("TTF_Init: %s\n", TTF_GetError());
+        return 1;
     }
 
     ui = ListUI_Create("Offline Account Activation " VERSION_TAG);
@@ -229,6 +207,9 @@ int main(int argc, char* args[])
 		case SDL_CONTROLLER_BUTTON_A:
 		    ListUI_ActivateSelected(ui);
 		    break;
+                case SDL_CONTROLLER_BUTTON_B:
+                    quit = 1;
+                    break;
 		}
 	    }
 	}

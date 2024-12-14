@@ -26,29 +26,27 @@ VERSION_TAG := $(shell git describe --abbrev=10 --dirty --always --tags)
 
 CFLAGS := -O1 -g -Wall -Wno-format-truncation -DVERSION_TAG=\"$(VERSION_TAG)\"
 LDADD := `$(PS5_PAYLOAD_SDK)/bin/prospero-sdl2-config --cflags --libs`
-LDADD += -lSDL2_mixer -lSDL2_ttf `$(PS5_PAYLOAD_SDK)/bin/prospero-freetype-config --libs`
-LDADD += -lSceRegMgr -lSceImeDialog -lSceUserService
+LDADD += -lSDL2_ttf `$(PS5_PAYLOAD_SDK)/bin/prospero-freetype-config --libs`
+LDADD += -lSceRegMgr -lSceImeDialog -lSceUserService -lSDL2main
 
 ELF := OffAct.elf
 
 all: $(ELF)
 
-font.h: assets/font.ttf
-	xxd -i $< $@
-
-snd_nav.h: assets/nav.wav
-	xxd -i $< $@
-
 readme.h: README.md
 	xxd -i $< $@
 
-main.c: font.h snd_nav.h readme.h
+main.c: readme.h
 
 $(ELF): main.c offact.c IME_dialog.c SDL_listui.c
 	$(CC) $(CFLAGS) -o $@ $(LDADD) $^
 
 clean:
-	rm -f $(ELF) font.h snd_nav.h
+	rm -f $(ELF) readme.h
 
 upload: $(ELF)
 	curl -T $^ ftp://$(PS5_HOST):2121/data/homebrew/OffAct/$^
+
+
+dist: $(ELF) homebrew.js sce_sys/icon0.png
+	zip -r OffAct.zip $^
