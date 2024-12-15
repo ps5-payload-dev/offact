@@ -16,7 +16,6 @@ along with this program; see the file COPYING. If not, see
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
-#include <SDL2/SDL_mixer.h>
 
 #include "IME_dialog.h"
 #include "SDL_listui.h"
