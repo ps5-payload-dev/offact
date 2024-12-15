@@ -101,7 +101,9 @@ static SceImeDialogParam g_param =
 {
     .title = g_title,
     .inputTextBuffer = g_text,
-    .maxTextLength = sizeof(g_text) / sizeof(g_text[0])
+    .maxTextLength = sizeof(g_text) / sizeof(g_text[0]),
+    .halign = SCE_IME_HALIGN_CENTER,
+    .valign = SCE_IME_VALIGN_CENTER
 };
 
 
@@ -145,11 +147,13 @@ int IME_Dialog_GetText(char* text, size_t size)
 }
 
 
-int IME_Dialog_Display(void)
+int IME_Dialog_Display(int posx, int posy)
 {
     int err;
 
     g_param.type = SCE_IME_TYPE_BASIC_LATIN;
+    g_param.posx = posx;
+    g_param.posy = posy;
     if((err=sceUserServiceGetForegroundUser(&g_param.userId))) {
 	return err;
     }

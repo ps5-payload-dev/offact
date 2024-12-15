@@ -61,7 +61,7 @@ int IME_Dialog_GetText(char* text, size_t size);
 /**
  * Display the dialog.
  **/
-int IME_Dialog_Display(void);
+int IME_Dialog_Display(int posx, int posy);
 
 
 /**

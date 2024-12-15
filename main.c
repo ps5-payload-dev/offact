@@ -114,7 +114,7 @@ static void OnActivateItem(void *ctx, SDL_ListUI *listui, Uint64 item_id)
     if(!account_id) {
 	account_id = OffAct_GenAccountId(account_name);
     }
-    sprintf(buf, "Enter account id for user %s", account_name);
+    sprintf(buf, "Enter account ID for %s", account_name);
     if(IME_Dialog_SetTitle(buf) < 0) {
 	return;
     }
@@ -124,7 +124,7 @@ static void OnActivateItem(void *ctx, SDL_ListUI *listui, Uint64 item_id)
     }
 
     IME_Dialog_OnOutcome(OnDialogOutcome, (void*)(Uint64)account_numb);
-    if(IME_Dialog_Display()) {
+    if(IME_Dialog_Display(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)) {
 	return;
     }
 }
