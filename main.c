@@ -188,7 +188,7 @@ int SDL_main(int argc, char* args[])
         return 1;
     }
 
-    ui = ListUI_Create("Offline Account Activation " VERSION_TAG);
+    ui = ListUI_Create("Offline account activation");
     ListUI_SetSelectedColor(ui, (SDL_Color){0x3b, 0x40, 0x47, 0xff});
     ListUI_SetTextColor(ui, (SDL_Color){0xb9, 0xbb, 0xbb, 0xff});
     ListUI_SetActivateTextColor(ui, (SDL_Color){0xff, 0xff, 0xff, 0xff});
