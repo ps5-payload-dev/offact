@@ -183,7 +183,7 @@ int SDL_main(int argc, char* args[])
 	return -1;
     }
     if(!(font=TTF_OpenFont("/preinst/common/font/n023055ms.ttf", 44))) {
-        printf("TTF_Init: %s\n", TTF_GetError());
+        printf("TTF_OpenFont: %s\n", TTF_GetError());
         return 1;
     }
 
