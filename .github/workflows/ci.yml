@@ -26,7 +26,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install build-essential clang-15 lld-15
+        sudo apt install build-essential clang-18 lld-18
 
     - name: Install toolchain
       run: |
