@@ -2,15 +2,13 @@ name: CI
 
 on:
   push:
-    tags:
-      - "*"
     paths-ignore:
       - "**/*.md"
-      - "**/*.txt"
+      - '**/*.txt'
   pull_request:
     paths-ignore:
       - "**/*.md"
-      - "**/*.txt"
+      - '**/*.txt'
   workflow_dispatch:
 
 concurrency:
