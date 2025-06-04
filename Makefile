@@ -42,7 +42,7 @@ $(ELF): main.c offact.c IME_dialog.c SDL_listui.c
 	$(CC) $(CFLAGS) -o $@ $(LDADD) $^
 
 clean:
-	rm -f $(ELF) readme.h
+	rm -f $(ELF) readme.h OffAct.zip
 
 upload: $(ELF)
 	curl -T $^ ftp://$(PS5_HOST):2121/data/homebrew/OffAct/$^
