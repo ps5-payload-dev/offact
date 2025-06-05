@@ -47,6 +47,10 @@ clean:
 upload: $(ELF)
 	curl -T $^ ftp://$(PS5_HOST):2121/data/homebrew/OffAct/$^
 
+install: $(ELF) homebrew.js sce_sys/icon0.png
+	install -Dm 644 sce_sys/icon0.png -t "${DESTDIR}/${PREFIX}/OffAct/sce_sys"
+	install -Dm 644 homebrew.js -t "${DESTDIR}/${PREFIX}/OffAct"
+	install -Dm 755 $(ELF) -t "${DESTDIR}/${PREFIX}/OffAct"
 
 dist: $(ELF) homebrew.js sce_sys/icon0.png
 	zip -r OffAct.zip $^
